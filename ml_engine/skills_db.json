@@ -1,0 +1,36 @@
+{
+  "technical_skills": {
+    "programming_languages": ["python", "java", "javascript", "typescript", "c++", "c#", "ruby", "go", "rust", "scala", "kotlin", "swift", "php", "r", "matlab", "perl", "bash", "shell", "dart", "objective-c", "haskell", "erlang", "elixir", "clojure", "groovy", "fortran", "cobol", "vba", "assembly"],
+    "web_frameworks": ["django", "flask", "fastapi", "react", "angular", "vue", "nextjs", "nuxtjs", "express", "spring", "rails", "laravel", "asp.net", "symfony", "tornado", "aiohttp", "sanic", "svelte", "ember", "backbone", "jquery", "bootstrap", "tailwind", "material-ui"],
+    "databases": ["mysql", "postgresql", "mongodb", "redis", "sqlite", "oracle", "mssql", "cassandra", "dynamodb", "elasticsearch", "neo4j", "firebase", "couchdb", "mariadb", "hbase", "influxdb", "cockroachdb", "tidb", "vitess"],
+    "cloud_platforms": ["aws", "gcp", "azure", "heroku", "digitalocean", "linode", "vultr", "cloudflare", "firebase", "netlify", "vercel", "railway"],
+    "devops_tools": ["docker", "kubernetes", "jenkins", "gitlab-ci", "github-actions", "terraform", "ansible", "puppet", "chef", "vagrant", "nginx", "apache", "helm", "prometheus", "grafana", "elk", "datadog", "newrelic"],
+    "ml_ai": ["tensorflow", "pytorch", "keras", "scikit-learn", "pandas", "numpy", "matplotlib", "seaborn", "opencv", "nltk", "spacy", "huggingface", "transformers", "bert", "gpt", "langchain", "llamaindex", "xgboost", "lightgbm", "catboost", "mlflow", "kubeflow", "airflow", "pyspark", "hadoop"],
+    "version_control": ["git", "github", "gitlab", "bitbucket", "svn", "mercurial"],
+    "mobile": ["android", "ios", "react native", "flutter", "xamarin", "ionic", "cordova"],
+    "testing": ["junit", "pytest", "selenium", "cypress", "jest", "mocha", "jasmine", "testng", "appium", "postman"]
+  },
+  "soft_skills": ["leadership", "communication", "teamwork", "problem-solving", "critical thinking", "creativity", "time management", "adaptability", "collaboration", "presentation", "mentoring", "project management", "agile", "scrum", "kanban"],
+  "certifications": ["aws certified", "google certified", "azure certified", "cisco ccna", "pmp", "scrum master", "csm", "ceh", "cissp", "comptia", "oracle certified", "salesforce certified", "tensorflow developer", "gcp professional"],
+  "job_roles": {
+    "data_scientist": ["machine learning", "deep learning", "data analysis", "statistics", "python", "r", "tensorflow", "pytorch", "data visualization", "feature engineering", "model deployment", "nlp", "computer vision"],
+    "software_engineer": ["programming", "algorithms", "data structures", "system design", "api development", "microservices", "testing", "code review", "agile", "version control"],
+    "devops_engineer": ["ci/cd", "docker", "kubernetes", "aws", "azure", "gcp", "terraform", "ansible", "monitoring", "linux", "scripting", "automation"],
+    "web_developer": ["html", "css", "javascript", "react", "angular", "vue", "node.js", "rest api", "responsive design", "frontend", "backend", "fullstack"],
+    "data_engineer": ["spark", "hadoop", "kafka", "airflow", "etl", "data pipeline", "sql", "nosql", "data warehouse", "dbt", "bigquery", "redshift"],
+    "ml_engineer": ["mlops", "model deployment", "docker", "kubernetes", "api", "python", "tensorflow", "pytorch", "feature store", "model monitoring"],
+    "cybersecurity": ["penetration testing", "vulnerability assessment", "firewall", "intrusion detection", "encryption", "siem", "incident response", "network security"],
+    "product_manager": ["product roadmap", "stakeholder management", "user stories", "agile", "market research", "product strategy", "kpi", "analytics"],
+    "cloud_architect": ["aws", "azure", "gcp", "cloud infrastructure", "serverless", "microservices", "cost optimization", "security", "networking"]
+  },
+  "action_verbs": ["developed", "designed", "implemented", "built", "created", "led", "managed", "architected", "optimized", "reduced", "increased", "improved", "delivered", "deployed", "automated", "integrated", "analyzed", "researched", "collaborated", "mentored", "coordinated", "executed", "launched", "maintained", "monitored", "resolved", "scaled", "streamlined", "transformed", "engineered"],
+  "weak_verbs": ["worked on", "helped with", "assisted in", "participated in", "was responsible for", "involved in", "did", "made"],
+  "education_keywords": ["b.tech", "m.tech", "b.e", "m.e", "b.sc", "m.sc", "phd", "mba", "bachelor", "master", "doctorate", "diploma", "pgdm", "bca", "mca"],
+  "industry_keywords": {
+    "fintech": ["banking", "finance", "payment", "blockchain", "cryptocurrency", "trading", "risk management", "compliance", "fraud detection"],
+    "healthtech": ["healthcare", "medical", "clinical", "ehr", "hl7", "fhir", "patient", "hospital", "pharmaceutical"],
+    "ecommerce": ["retail", "marketplace", "payment gateway", "inventory", "order management", "recommendation", "catalog"],
+    "edtech": ["learning management", "lms", "e-learning", "course", "student", "curriculum", "assessment"],
+    "gaming": ["unity", "unreal", "game engine", "gameplay", "multiplayer", "physics", "rendering", "shader"]
+  }
+}

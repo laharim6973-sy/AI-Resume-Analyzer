@@ -1,0 +1,523 @@
+{% extends 'resume_app/base.html' %}
+
+{% block title %}ResumeAI Pro — Upload Resume{% endblock %}
+
+{% block extra_css %}
+<style>
+.hero {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 5rem 2rem 3rem;
+  animation: fadeUp 0.6s ease;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 16px;
+  background: rgba(99,179,237,0.08);
+  border: 1px solid rgba(99,179,237,0.2);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-family: 'Space Mono', monospace;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+}
+
+.hero-badge::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--accent2);
+  border-radius: 50%;
+  animation: pulse-glow 2s infinite;
+}
+
+.hero-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  font-weight: 800;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+}
+
+.hero-title span {
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero-desc {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  max-width: 560px;
+  line-height: 1.7;
+  margin-bottom: 3rem;
+}
+
+/* Upload area */
+.upload-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+  .upload-grid { grid-template-columns: 1fr; }
+}
+
+.upload-zone {
+  background: var(--bg-card);
+  border: 2px dashed rgba(99,179,237,0.2);
+  border-radius: var(--radius-lg);
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-zone::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(99,179,237,0.04) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.upload-zone:hover::before,
+.upload-zone.dragover::before { opacity: 1; }
+
+.upload-zone:hover,
+.upload-zone.dragover {
+  border-color: rgba(99,179,237,0.5);
+  background: var(--bg-card-hover);
+  transform: translateY(-2px);
+  box-shadow: var(--glow);
+}
+
+.upload-icon {
+  width: 72px;
+  height: 72px;
+  background: rgba(99,179,237,0.1);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin: 0 auto 1.25rem;
+  transition: all 0.3s;
+}
+
+.upload-zone:hover .upload-icon {
+  background: rgba(99,179,237,0.2);
+  transform: scale(1.1);
+}
+
+.upload-label {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.upload-hint {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-family: 'Space Mono', monospace;
+}
+
+#file-input { display: none; }
+
+/* JD section */
+.jd-section {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.75rem;
+}
+
+.jd-section label {
+  font-family: 'Syne', sans-serif;
+  font-weight: 700;
+  font-size: 0.95rem;
+  display: block;
+  margin-bottom: 0.75rem;
+  color: var(--text-primary);
+}
+
+.jd-section label span {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-left: 6px;
+}
+
+textarea {
+  width: 100%;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-primary);
+  padding: 1rem;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  resize: vertical;
+  min-height: 150px;
+  transition: all 0.2s;
+  outline: none;
+}
+
+textarea:focus {
+  border-color: var(--border-glow);
+  box-shadow: 0 0 0 3px rgba(99,179,237,0.08);
+}
+
+/* File preview */
+.file-preview {
+  display: none;
+  align-items: center;
+  gap: 12px;
+  padding: 1rem 1.25rem;
+  background: rgba(104,211,145,0.08);
+  border: 1px solid rgba(104,211,145,0.2);
+  border-radius: 10px;
+  margin-top: 1rem;
+}
+
+.file-preview.show { display: flex; }
+
+.file-preview-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(104,211,145,0.15);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.file-preview-info { flex: 1; min-width: 0; }
+.file-preview-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--accent2);
+}
+.file-preview-size { font-size: 0.75rem; color: var(--text-muted); font-family: 'Space Mono', monospace; }
+
+/* Submit btn */
+.submit-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.btn-analyze {
+  background: var(--gradient);
+  color: white;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  font-family: 'Syne', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 24px rgba(99,179,237,0.3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-analyze::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+  transition: left 0.4s;
+}
+
+.btn-analyze:hover::before { left: 100%; }
+
+.btn-analyze:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 40px rgba(99,179,237,0.45);
+}
+
+.btn-analyze:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Features strip */
+.features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 4rem;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 1.25rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all 0.3s;
+  animation: fadeUp 0.6s ease backwards;
+  overflow: hidden;
+  min-width: 0;
+  word-break: break-word;
+}
+
+.feature-item:hover {
+  border-color: var(--border-glow);
+  transform: translateY(-3px);
+  box-shadow: var(--glow);
+}
+
+.feature-emoji { font-size: 1.5rem; flex-shrink: 0; }
+.feature-name { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem; margin-bottom: 3px; word-break: break-word; overflow-wrap: break-word; }
+.feature-desc { word-wrap: break-word; overflow-wrap: break-word; font-size: 0.72rem; color: var(--text-muted); line-height: 1.5; }
+
+/* Error */
+.error-banner {
+  background: rgba(252,129,129,0.08);
+  border: 1px solid rgba(252,129,129,0.25);
+  border-radius: 10px;
+  padding: 1rem 1.25rem;
+  color: var(--accent4);
+  font-size: 0.875rem;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Loading overlay */
+.loading-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(5,8,16,0.85);
+  backdrop-filter: blur(8px);
+  z-index: 200;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+}
+
+.loading-overlay.show { display: flex; }
+
+.loading-spinner {
+  width: 60px;
+  height: 60px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loading-text {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.loading-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.loading-step.active { color: var(--accent2); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="hero">
+
+  {% if error %}
+  <div class="error-banner">❌ {{ error }}</div>
+  {% endif %}
+
+  <div class="hero-badge">🤖 AI + ML + NLP Powered</div>
+  <h1 class="hero-title">
+    Analyze Your Resume<br>
+    with <span>Artificial Intelligence</span>
+  </h1>
+  <p class="hero-desc">
+    Professional resume intelligence engine — ATS scoring, skill extraction,
+    job matching, readability analysis, and AI-powered recommendations.
+    No external APIs. 100% local ML.
+  </p>
+
+  <form id="upload-form" action="{% url 'upload_resume' %}" method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="upload-grid">
+      <!-- Upload Zone -->
+      <div>
+        <div class="upload-zone" id="drop-zone" onclick="document.getElementById('file-input').click()">
+          <div class="upload-icon">📄</div>
+          <div class="upload-label">Drop Resume Here</div>
+          <p class="upload-hint">PDF · DOCX · TXT — Max 10MB</p>
+          <input type="file" id="file-input" name="resume" accept=".pdf,.docx,.doc,.txt">
+        </div>
+        <div class="file-preview" id="file-preview">
+          <div class="file-preview-icon">✅</div>
+          <div class="file-preview-info">
+            <div class="file-preview-name" id="preview-name">—</div>
+            <div class="file-preview-size" id="preview-size">—</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- JD Section -->
+      <div class="jd-section">
+        <label>Job Description <span>(optional — enables JD matching)</span></label>
+        <textarea name="job_description" placeholder="Paste the job description here to get a tailored match score, missing keywords, and personalized gap analysis..."></textarea>
+      </div>
+    </div>
+
+    <div class="submit-row">
+      <button type="submit" class="btn-analyze" id="analyze-btn" disabled>
+        🚀 Analyze Resume
+      </button>
+      <span style="font-size:0.8rem; color: var(--text-muted); font-family:'Space Mono',monospace;">
+        ~3-5 seconds · No data sent to cloud
+      </span>
+    </div>
+  </form>
+
+  <div class="features">
+    {% for item in features_list %}{% endfor %}
+    <div class="feature-item" style="animation-delay:0.1s">
+      <span class="feature-emoji">🎯</span>
+      <div><div class="feature-name">ATS Score</div><div class="feature-desc">Applicant Tracking System compatibility score with breakdown</div></div>
+    </div>
+    <div class="feature-item" style="animation-delay:0.2s">
+      <span class="feature-emoji">🧠</span>
+      <div><div class="feature-name">Skill Extraction</div><div class="feature-desc">NLP-based extraction of 200+ technical & soft skills</div></div>
+    </div>
+    <div class="feature-item" style="animation-delay:0.3s">
+      <span class="feature-emoji">🔍</span>
+      <div><div class="feature-name">JD Matching</div><div class="feature-desc">TF-IDF cosine similarity match against job descriptions</div></div>
+    </div>
+    <div class="feature-item" style="animation-delay:0.4s">
+      <span class="feature-emoji">📊</span>
+      <div><div class="feature-name">ML Role Prediction</div><div class="feature-desc">Predicts best-fit job roles from 9 career profiles</div></div>
+    </div>
+    <div class="feature-item" style="animation-delay:0.5s">
+      <span class="feature-emoji">💡</span>
+      <div><div class="feature-name">AI Recommendations</div><div class="feature-desc">Actionable suggestions to improve resume strength</div></div>
+    </div>
+    <div class="feature-item" style="animation-delay:0.6s">
+      <span class="feature-emoji">📈</span>
+      <div><div class="feature-name">Readability Analysis</div><div class="feature-desc">Flesch-Kincaid score, sentence analysis, writing quality</div></div>
+    </div>
+  </div>
+
+</div>
+
+<div class="loading-overlay" id="loading-overlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Analyzing Resume...</div>
+  <div class="loading-steps">
+    <div class="loading-step" id="step-1">✓ Extracting text from document</div>
+    <div class="loading-step" id="step-2">⟳ Running NLP pipeline...</div>
+    <div class="loading-step" id="step-3">⟳ Calculating ATS score...</div>
+    <div class="loading-step" id="step-4">⟳ Extracting skills & entities...</div>
+    <div class="loading-step" id="step-5">⟳ Generating recommendations...</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const dropZone = document.getElementById('drop-zone');
+const fileInput = document.getElementById('file-input');
+const preview = document.getElementById('file-preview');
+const previewName = document.getElementById('preview-name');
+const previewSize = document.getElementById('preview-size');
+const analyzeBtn = document.getElementById('analyze-btn');
+const form = document.getElementById('upload-form');
+const loadingOverlay = document.getElementById('loading-overlay');
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1024/1024).toFixed(1) + ' MB';
+}
+
+function handleFile(file) {
+  if (!file) return;
+  previewName.textContent = file.name;
+  previewSize.textContent = formatSize(file.size) + ' · ' + file.name.split('.').pop().toUpperCase();
+  preview.classList.add('show');
+  analyzeBtn.disabled = false;
+  dropZone.style.borderColor = 'rgba(104,211,145,0.4)';
+}
+
+fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  const file = e.dataTransfer.files[0];
+  if (file) {
+    const dt = new DataTransfer();
+    dt.items.add(file);
+    fileInput.files = dt.files;
+    handleFile(file);
+  }
+});
+
+// Loading steps simulation
+const steps = ['step-1','step-2','step-3','step-4','step-5'];
+function animateSteps() {
+  steps.forEach((id, i) => {
+    setTimeout(() => {
+      document.getElementById(id).classList.add('active');
+      document.getElementById(id).textContent = document.getElementById(id).textContent.replace('⟳', '✓');
+    }, i * 600);
+  });
+}
+
+form.addEventListener('submit', (e) => {
+  if (!fileInput.files[0]) { e.preventDefault(); showToast('Please select a file first', 'error'); return; }
+  loadingOverlay.classList.add('show');
+  animateSteps();
+  analyzeBtn.disabled = true;
+});
+</script>
+{% endblock %}

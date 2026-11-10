@@ -1,0 +1,134 @@
+{% extends 'resume_app/base.html' %}
+{% block title %}Analysis History — ResumeAI Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-wrap { max-width: 1000px; margin: 0 auto; padding: 3rem 2rem; animation: fadeUp 0.5s ease; }
+.page-title { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 0.35rem; }
+.page-sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 2rem; }
+
+.history-table { width: 100%; border-collapse: collapse; }
+.history-table th {
+  text-align: left;
+  padding: 0.75rem 1rem;
+  font-size: 0.72rem;
+  font-family: 'Space Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+}
+
+.history-table td {
+  padding: 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  vertical-align: middle;
+  font-size: 0.875rem;
+}
+
+.history-table tr:hover td { background: rgba(255,255,255,0.02); }
+
+.score-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.score-high { background: rgba(104,211,145,0.12); color: var(--accent2); border: 1px solid rgba(104,211,145,0.25); }
+.score-med { background: rgba(99,179,237,0.12); color: var(--accent); border: 1px solid rgba(99,179,237,0.25); }
+.score-low { background: rgba(252,129,129,0.12); color: var(--accent4); border: 1px solid rgba(252,129,129,0.25); }
+
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--text-muted);
+}
+
+.empty-state .emoji { font-size: 3rem; margin-bottom: 1rem; display: block; }
+.empty-state h3 { font-family: 'Syne', sans-serif; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-secondary); }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <div class="page-title">📋 Analysis History</div>
+  <div class="page-sub">All resume analyses · last 20 records</div>
+
+  {% if analyses %}
+  <div class="card" style="padding:0;overflow:hidden;">
+    <table class="history-table">
+      <thead>
+        <tr>
+          <th>File Name</th>
+          <th>ATS Score</th>
+          <th>Skills</th>
+          <th>Date</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for a in analyses %}
+        <tr>
+          <td>
+            <div style="font-weight:600;">{{ a.file_name|truncatechars:40 }}</div>
+            {% if a.experience_years %}<div style="font-size:0.72rem;color:var(--text-muted);font-family:'Space Mono',monospace;margin-top:3px;">{{ a.experience_years }} yrs exp</div>{% endif %}
+          </td>
+          <td>
+            {% if a.status == 'completed' %}
+            <span class="score-pill {% if a.ats_score >= 75 %}score-high{% elif a.ats_score >= 55 %}score-med{% else %}score-low{% endif %}">
+              {{ a.ats_score|floatformat:0 }}/100
+            </span>
+            {% endif %}
+          </td>
+          <td>
+            <span style="font-family:'Space Mono',monospace;font-size:0.78rem;color:var(--accent);">
+              {% with skills=a.get_skills %}{{ skills.total_technical|default:0 }} tech{% endwith %}
+            </span>
+          </td>
+          <td style="color:var(--text-secondary);font-size:0.8rem;font-family:'Space Mono',monospace;">
+            {{ a.uploaded_at|date:"d M Y" }}<br>
+            <span style="color:var(--text-muted);">{{ a.uploaded_at|time:"H:i" }}</span>
+          </td>
+          <td>
+            {% if a.status == 'completed' %}
+            <span class="badge badge-green">✓ Done</span>
+            {% elif a.status == 'failed' %}
+            <span class="badge badge-red">✗ Failed</span>
+            {% else %}
+            <span class="badge badge-orange">⟳ {{ a.status }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <div style="display:flex;gap:6px;">
+              {% if a.status == 'completed' %}
+              <a href="{% url 'results' a.pk %}" class="btn btn-ghost" style="padding:5px 12px;font-size:0.75rem;">View</a>
+              {% endif %}
+              <form method="POST" action="{% url 'delete_analysis' a.pk %}" style="display:inline;" onsubmit="return confirm('Delete this analysis?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-ghost" style="padding:5px 12px;font-size:0.75rem;color:var(--accent4);border-color:rgba(252,129,129,0.2);">Delete</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="empty-state">
+      <span class="emoji">📭</span>
+      <h3>No analyses yet</h3>
+      <p>Upload your first resume to get started.</p>
+      <a href="{% url 'index' %}" class="btn btn-primary" style="margin-top:1rem;">⬆ Upload Resume</a>
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

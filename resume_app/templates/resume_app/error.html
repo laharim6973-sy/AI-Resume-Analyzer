@@ -1,0 +1,16 @@
+{% extends 'resume_app/base.html' %}
+{% block title %}Error — ResumeAI Pro{% endblock %}
+{% block content %}
+<div style="max-width:600px;margin:6rem auto;padding:2rem;text-align:center;animation:fadeUp 0.5s ease;">
+  <div style="font-size:4rem;margin-bottom:1rem;">⚠️</div>
+  <h1 style="font-family:'Syne',sans-serif;font-size:1.8rem;font-weight:800;margin-bottom:0.75rem;">Analysis Failed</h1>
+  <div style="background:rgba(252,129,129,0.08);border:1px solid rgba(252,129,129,0.2);border-radius:12px;padding:1rem 1.5rem;color:var(--accent4);font-size:0.875rem;margin-bottom:2rem;font-family:'Space Mono',monospace;text-align:left;">
+    {{ error }}
+  </div>
+  <p style="color:var(--text-secondary);font-size:0.875rem;margin-bottom:2rem;line-height:1.7;">
+    This can happen if the resume file is scanned/image-based, corrupted, or password protected.
+    Please try a different file format (PDF with selectable text, DOCX, or TXT).
+  </p>
+  <a href="{% url 'index' %}" class="btn btn-primary">⬆ Try Another Resume</a>
+</div>
+{% endblock %}

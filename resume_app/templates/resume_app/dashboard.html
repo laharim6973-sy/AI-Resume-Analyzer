@@ -1,0 +1,206 @@
+{% extends 'resume_app/base.html' %}
+{% block title %}Dashboard — ResumeAI Pro{% endblock %}
+
+{% block extra_css %}
+<style>
+.page-wrap { max-width: 1100px; margin: 0 auto; padding: 3rem 2rem 4rem; animation: fadeUp 0.5s ease; }
+.page-title { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; margin-bottom: 0.35rem; }
+.page-sub { color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 2.5rem; }
+
+.kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+@media (max-width: 900px) { .kpi-grid { grid-template-columns: 1fr 1fr; } }
+
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s;
+}
+
+.kpi-card:hover {
+  border-color: var(--border-glow);
+  box-shadow: var(--glow);
+  transform: translateY(-3px);
+}
+
+.kpi-card::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+}
+
+.kpi-card:nth-child(1)::after { background: linear-gradient(90deg, #63b3ed, #b794f4); }
+.kpi-card:nth-child(2)::after { background: linear-gradient(90deg, #68d391, #63b3ed); }
+.kpi-card:nth-child(3)::after { background: linear-gradient(90deg, #f6ad55, #fc8181); }
+.kpi-card:nth-child(4)::after { background: linear-gradient(90deg, #b794f4, #68d391); }
+
+.kpi-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 2.8rem;
+  font-weight: 800;
+  line-height: 1;
+  margin-bottom: 0.4rem;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.kpi-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-family: 'Space Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.kpi-icon {
+  position: absolute;
+  top: 1.25rem;
+  right: 1.25rem;
+  font-size: 1.75rem;
+  opacity: 0.4;
+}
+
+.dist-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 2rem; }
+@media (max-width: 768px) { .dist-grid { grid-template-columns: 1fr; } }
+
+.dist-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 0.75rem;
+}
+
+.dist-label { width: 80px; font-size: 0.78rem; font-family: 'Space Mono', monospace; color: var(--text-secondary); }
+.dist-bar { flex: 1; height: 10px; background: rgba(255,255,255,0.05); border-radius: 999px; overflow: hidden; }
+.dist-fill { height: 100%; border-radius: 999px; transition: width 1s ease; }
+.dist-count { width: 30px; text-align: right; font-size: 0.75rem; font-family: 'Space Mono', monospace; color: var(--text-muted); }
+
+.recent-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.875rem 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.recent-item:last-child { border-bottom: none; }
+
+.recent-score {
+  width: 50px;
+  height: 50px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-weight: 800;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+
+.score-a { background: rgba(104,211,145,0.15); color: var(--accent2); }
+.score-b { background: rgba(99,179,237,0.15); color: var(--accent); }
+.score-c { background: rgba(246,173,85,0.15); color: var(--accent3); }
+.score-d { background: rgba(252,129,129,0.15); color: var(--accent4); }
+
+.recent-info { flex: 1; min-width: 0; }
+.recent-name { font-weight: 600; font-size: 0.875rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.recent-meta { font-size: 0.72rem; color: var(--text-muted); font-family: 'Space Mono', monospace; margin-top: 2px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <div class="page-title">📊 Analytics Dashboard</div>
+  <div class="page-sub">Overview of all resume analyses</div>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <div class="kpi-icon">📄</div>
+      <div class="kpi-num">{{ total }}</div>
+      <div class="kpi-label">Total Resumes Analyzed</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">🎯</div>
+      <div class="kpi-num">{{ avg_score }}</div>
+      <div class="kpi-label">Average ATS Score</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">🏆</div>
+      <div class="kpi-num">{% for k,v in score_bands.items %}{% if k == "90-100" %}{{ v }}{% endif %}{% endfor %}</div>
+      <div class="kpi-label">Excellent Resumes (90+)</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon">⚠️</div>
+      <div class="kpi-num">{% for k,v in score_bands.items %}{% if k == "Below 60" %}{{ v }}{% endif %}{% endfor %}</div>
+      <div class="kpi-label">Need Improvement (&lt;60)</div>
+    </div>
+  </div>
+
+  <div class="dist-grid">
+    <!-- Score Distribution -->
+    <div class="card">
+      <div class="section-header">
+        <div class="section-icon section-icon-blue">📈</div>
+        <div>
+          <div class="section-title">Score Distribution</div>
+          <div class="section-sub">Breakdown by score band</div>
+        </div>
+      </div>
+      {% for band, count in score_bands.items %}
+      <div class="dist-row">
+        <div class="dist-label">{{ band }}</div>
+        <div class="dist-bar">
+          <div class="dist-fill"
+            style="width: {% if total > 0 %}{% widthratio count total 100 %}{% else %}0{% endif %}%;
+                   background: {% if band == '90-100' %}var(--accent2){% elif band == '80-89' %}var(--accent){% elif band == '70-79' %}#63b3ed{% elif band == '60-69' %}var(--accent3){% else %}var(--accent4){% endif %};">
+          </div>
+        </div>
+        <div class="dist-count">{{ count }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Recent -->
+    <div class="card">
+      <div class="section-header">
+        <div class="section-icon section-icon-green">🕐</div>
+        <div>
+          <div class="section-title">Recent Analyses</div>
+          <div class="section-sub">Last 10 resumes</div>
+        </div>
+      </div>
+      {% for a in recent %}
+      <div class="recent-item">
+        <div class="recent-score {% if a.ats_score >= 75 %}score-a{% elif a.ats_score >= 60 %}score-b{% elif a.ats_score >= 45 %}score-c{% else %}score-d{% endif %}">
+          {{ a.ats_score|floatformat:0 }}
+        </div>
+        <div class="recent-info">
+          <div class="recent-name">{{ a.file_name|truncatechars:35 }}</div>
+          <div class="recent-meta">{{ a.uploaded_at|date:"d M Y, H:i" }}</div>
+        </div>
+        <a href="{% url 'results' a.pk %}" class="btn btn-ghost" style="padding:5px 12px;font-size:0.75rem;">View</a>
+      </div>
+      {% empty %}
+      <p style="color:var(--text-muted);font-size:0.85rem;padding:1rem 0;">No analyses yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div style="text-align:center;margin-top:1rem;">
+    <a href="{% url 'index' %}" class="btn btn-primary">⬆ Analyze New Resume</a>
+  </div>
+</div>
+{% endblock %}

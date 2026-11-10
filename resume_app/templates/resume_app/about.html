@@ -1,0 +1,392 @@
+{% extends 'resume_app/base.html' %}
+{% block content %}
+<style>
+.about-hero {
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+  border-radius: 20px;
+  padding: 60px 40px;
+  text-align: center;
+  color: #fff;
+  margin-bottom: 40px;
+  position: relative;
+  overflow: hidden;
+}
+.about-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+.about-hero h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 16px;
+  letter-spacing: -0.5px;
+}
+.about-hero p {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  max-width: 600px;
+  margin: 0 auto;
+  line-height: 1.7;
+}
+.about-badge {
+  display: inline-block;
+  background: rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  letter-spacing: 0.05em;
+}
+
+.section-title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+.section-sub {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: 28px;
+}
+
+/* Cards grid */
+.cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+}
+.feature-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px 24px;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--gradient);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.feature-card:hover { transform: translateY(-4px); box-shadow: var(--glow); }
+.feature-card:hover::before { opacity: 1; }
+.fc-icon {
+  width: 50px; height: 50px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  margin-bottom: 16px;
+}
+.fc-title { font-size: 1rem; font-weight: 700; margin-bottom: 8px; color: var(--text); }
+.fc-desc  { font-size: 0.82rem; color: var(--text-muted); line-height: 1.6; word-break: break-word; }
+
+/* Tech stack */
+.tech-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 40px;
+}
+.tech-pill {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 20px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  transition: all 0.2s;
+}
+.tech-pill:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-2px); }
+.tech-pill span { font-size: 1.1rem; }
+
+/* How it works */
+.steps-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+  position: relative;
+}
+.steps-grid::before {
+  content: '';
+  position: absolute;
+  top: 30px; left: 12%;
+  width: 76%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  opacity: 0.3;
+  z-index: 0;
+}
+.step-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px 18px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  transition: all 0.3s;
+}
+.step-card:hover { transform: translateY(-4px); box-shadow: var(--glow); }
+.step-num {
+  width: 44px; height: 44px;
+  background: var(--gradient);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  font-weight: 800;
+  color: #fff;
+  margin: 0 auto 14px;
+}
+.step-title { font-size: 0.9rem; font-weight: 700; margin-bottom: 6px; }
+.step-desc  { font-size: 0.78rem; color: var(--text-muted); line-height: 1.5; }
+
+/* Developer card */
+.dev-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 40px;
+}
+.dev-avatar {
+  width: 100px; height: 100px;
+  border-radius: 50%;
+  background: var(--gradient);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #fff;
+  flex-shrink: 0;
+}
+.dev-info h3 { font-size: 1.4rem; font-weight: 800; margin-bottom: 6px; }
+.dev-info p  { font-size: 0.875rem; color: var(--text-muted); line-height: 1.7; }
+.dev-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.dev-tag {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 14px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* Algorithm section */
+.algo-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 40px;
+}
+.algo-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+}
+.algo-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 10px; color: var(--accent); }
+.algo-card p  { font-size: 0.82rem; color: var(--text-muted); line-height: 1.7; }
+
+/* Stats strip */
+.stats-strip {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 40px;
+}
+.stat-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px;
+  text-align: center;
+}
+.stat-box h3 { font-size: 2rem; font-weight: 800; color: var(--accent); }
+.stat-box p  { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; }
+
+@media(max-width: 900px) {
+  .cards-grid    { grid-template-columns: 1fr 1fr; }
+  .steps-grid    { grid-template-columns: 1fr 1fr; }
+  .algo-grid     { grid-template-columns: 1fr; }
+  .stats-strip   { grid-template-columns: 1fr 1fr; }
+  .steps-grid::before { display: none; }
+}
+@media(max-width: 600px) {
+  .cards-grid  { grid-template-columns: 1fr; }
+  .steps-grid  { grid-template-columns: 1fr; }
+  .stats-strip { grid-template-columns: 1fr 1fr; }
+  .dev-card    { flex-direction: column; text-align: center; }
+  .about-hero h1 { font-size: 1.8rem; }
+}
+</style>
+
+<!-- HERO -->
+<div class="about-hero">
+  <div class="about-badge">🤖 AI-Powered Resume Analysis</div>
+  <h1>AI Resume Web Application</h1>
+  <p>A professional-grade resume analysis system built with Django and custom Machine Learning algorithms — TF-IDF, Cosine Similarity, NLP Skill Extraction, and ATS Scoring — all developed from scratch.</p>
+</div>
+
+<!-- STATS -->
+<div class="stats-strip">
+  <div class="stat-box"><h3>500+</h3><p>Skills in Database</p></div>
+  <div class="stat-box"><h3>9</h3><p>Career Roles Predicted</p></div>
+  <div class="stat-box"><h3>100%</h3><p>Custom ML Engine</p></div>
+  <div class="stat-box"><h3>6</h3><p>Analysis Modules</p></div>
+</div>
+
+<!-- FEATURES -->
+<div class="section-title">⚡ Core Features</div>
+<div class="section-sub">Everything your resume needs to stand out</div>
+<div class="cards-grid">
+  <div class="feature-card">
+    <div class="fc-icon" style="background:#eef2ff;">🎯</div>
+    <div class="fc-title">ATS Score</div>
+    <div class="fc-desc">Applicant Tracking System compatibility scoring with detailed breakdown across 7 categories including contact info, skills, sections, and action verbs.</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon" style="background:#d1fae5;">🧠</div>
+    <div class="fc-title">NLP Skill Extraction</div>
+    <div class="fc-desc">Extracts 200+ technical and soft skills using Natural Language Processing. Identifies programming languages, frameworks, databases, cloud platforms, and more.</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon" style="background:#fef3c7;">🔍</div>
+    <div class="fc-title">JD Matching</div>
+    <div class="fc-desc">Matches your resume against any job description using TF-IDF vectorization and Cosine Similarity. Shows matching and missing keywords instantly.</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon" style="background:#fee2e2;">📊</div>
+    <div class="fc-title">ML Role Prediction</div>
+    <div class="fc-desc">Predicts the best-fit job roles from 9 career profiles using skill overlap analysis and machine learning. Shows match percentage for each role.</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon" style="background:#dbeafe;">💡</div>
+    <div class="fc-title">AI Recommendations</div>
+    <div class="fc-desc">Generates actionable, personalized suggestions to improve resume strength — covering contact info, action verbs, quantified achievements, and more.</div>
+  </div>
+  <div class="feature-card">
+    <div class="fc-icon" style="background:#fce7f3;">📖</div>
+    <div class="fc-title">Readability Analysis</div>
+    <div class="fc-desc">Analyzes writing quality using the Flesch-Kincaid readability formula. Checks sentence length, word count, and overall writing clarity score.</div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<div class="section-title">🔄 How It Works</div>
+<div class="section-sub">Simple 4-step process from upload to results</div>
+<div class="steps-grid">
+  <div class="step-card">
+    <div class="step-num">1</div>
+    <div class="step-title">Upload Resume</div>
+    <div class="step-desc">Upload your resume in PDF, DOCX, or TXT format. Optionally paste a job description for JD matching.</div>
+  </div>
+  <div class="step-card">
+    <div class="step-num">2</div>
+    <div class="step-title">Text Extraction</div>
+    <div class="step-desc">The system extracts and cleans raw text from your resume file using intelligent parsing algorithms.</div>
+  </div>
+  <div class="step-card">
+    <div class="step-num">3</div>
+    <div class="step-title">ML Analysis</div>
+    <div class="step-desc">Custom ML engine runs TF-IDF, Cosine Similarity, NLP skill extraction, and ATS scoring on the text.</div>
+  </div>
+  <div class="step-card">
+    <div class="step-num">4</div>
+    <div class="step-title">Results & Tips</div>
+    <div class="step-desc">Get a detailed report with ATS score, skills found, role predictions, JD match, and improvement tips.</div>
+  </div>
+</div>
+
+<!-- ALGORITHMS -->
+<div class="section-title">🧮 Algorithms Used</div>
+<div class="section-sub">All algorithms are implemented from scratch — no external ML libraries</div>
+<div class="algo-grid">
+  <div class="algo-card">
+    <h4>TF-IDF (Term Frequency-Inverse Document Frequency)</h4>
+    <p>Converts resume and job description text into numerical vectors by calculating how important each word is relative to the document. Used for keyword importance scoring and JD matching.</p>
+  </div>
+  <div class="algo-card">
+    <h4>Cosine Similarity</h4>
+    <p>Measures the similarity between the resume TF-IDF vector and the job description vector. A score of 1.0 means perfect match. Used to calculate the JD match percentage shown in results.</p>
+  </div>
+  <div class="algo-card">
+    <h4>NLP — Natural Language Processing</h4>
+    <p>Uses tokenization, stopword removal, and n-gram extraction to identify skills, action verbs, and key phrases. Regex-based named entity recognition for contact information extraction.</p>
+  </div>
+  <div class="algo-card">
+    <h4>Flesch-Kincaid Readability Score</h4>
+    <p>Calculates resume readability using the formula: 206.835 − 1.015 × (words/sentences) − 84.6 × (syllables/words). Higher score means easier to read and better for ATS systems.</p>
+  </div>
+</div>
+
+<!-- TECH STACK -->
+<div class="section-title">🛠️ Technology Stack</div>
+<div class="section-sub">Built with modern, industry-standard technologies</div>
+<div class="tech-grid">
+  <div class="tech-pill"><span>🐍</span> Python 3.x</div>
+  <div class="tech-pill"><span>🌐</span> Django Framework</div>
+  <div class="tech-pill"><span>🧠</span> Custom NLP Engine</div>
+  <div class="tech-pill"><span>📊</span> TF-IDF Algorithm</div>
+  <div class="tech-pill"><span>📐</span> Cosine Similarity</div>
+  <div class="tech-pill"><span>🗄️</span> SQLite Database</div>
+  <div class="tech-pill"><span>🎨</span> HTML5 & CSS3</div>
+  <div class="tech-pill"><span>⚡</span> JavaScript</div>
+  <div class="tech-pill"><span>📄</span> pdfplumber</div>
+  <div class="tech-pill"><span>📝</span> python-docx</div>
+  <div class="tech-pill"><span>🔤</span> Regex NER</div>
+  <div class="tech-pill"><span>📈</span> Custom ATS Scorer</div>
+</div>
+
+<!-- DEVELOPER -->
+<div class="section-title">👩‍💻 Developer</div>
+<div class="section-sub">About the project creator</div>
+<div class="dev-card">
+  <div class="dev-avatar">L</div>
+  <div class="dev-info">
+    <h3>Lahari.M</h3>
+    <p>This project was designed and developed as a professional-grade web application demonstrating expertise in full-stack Django development, custom machine learning algorithm implementation, and natural language processing. The entire ML engine — including TF-IDF vectorization, cosine similarity, skill extraction, and ATS scoring — was built from scratch without relying on external ML libraries.</p>
+    <p style="margin-top:10px;font-size:0.85rem;">
+  📞 +91-8792148819 &nbsp;|&nbsp; 📧 Lahari.M6973@email.com
+</p>
+    <div class="dev-tags">
+      <span class="dev-tag">Django Developer</span>
+      <span class="dev-tag">ML Engineer</span>
+      <span class="dev-tag">NLP</span>
+      <span class="dev-tag">Full Stack</span>
+      <span class="dev-tag">Python</span>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div style="text-align:center;padding:40px;background:var(--bg-card);border:1px solid var(--border);border-radius:20px;">
+  <div style="font-size:2rem;margin-bottom:12px;">🚀</div>
+  <h3 style="font-size:1.3rem;font-weight:800;margin-bottom:10px;">Ready to Analyze Your Resume?</h3>
+  <p style="color:var(--text-muted);font-size:0.875rem;margin-bottom:24px;">Upload your resume now and get a detailed ATS score with personalized recommendations</p>
+  <a href="{% url 'index' %}" style="display:inline-block;background:var(--gradient);color:#fff;padding:14px 36px;border-radius:10px;font-weight:700;text-decoration:none;font-size:0.95rem;">⬆ Upload Resume Now</a>
+</div>
+
+{% endblock %}

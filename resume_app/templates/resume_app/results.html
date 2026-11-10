@@ -1,0 +1,679 @@
+{% extends 'resume_app/base.html' %}
+{% block title %}Analysis Results — {{ analysis.file_name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+.results-wrap {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 4rem;
+  animation: fadeUp 0.5s ease;
+}
+
+.results-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 2.5rem;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.results-header-left h1 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+}
+
+.results-header-left p {
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+  font-family: 'Space Mono', monospace;
+}
+
+/* Score Hero */
+.score-hero {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 2rem;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem 2.5rem;
+  margin-bottom: 2rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.score-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--gradient);
+}
+
+@media (max-width: 768px) {
+  .score-hero { grid-template-columns: 1fr; text-align: center; }
+}
+
+/* Circular score */
+.score-ring {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+}
+
+.score-ring svg { transform: rotate(-90deg); }
+
+.score-ring-text {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.score-number {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.score-label {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.score-info h2 {
+  font-family: 'Syne', sans-serif;
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-bottom: 0.35rem;
+}
+
+.score-info p { color: var(--text-secondary); font-size: 0.875rem; line-height: 1.6; }
+
+.score-grade {
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.grade-letter {
+  font-family: 'Syne', sans-serif;
+  font-size: 4rem;
+  font-weight: 800;
+  line-height: 1;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.grade-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-family: 'Space Mono', monospace;
+}
+
+/* Grid layout */
+.results-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.results-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 900px) {
+  .results-grid, .results-grid-3 { grid-template-columns: 1fr; }
+}
+
+/* ATS Breakdown */
+.ats-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+}
+
+.ats-row:last-child { border-bottom: none; }
+.ats-row-label { font-size: 0.8rem; color: var(--text-secondary); width: 140px; flex-shrink: 0; }
+.ats-row-bar { flex: 1; }
+.ats-row-score {
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  width: 50px;
+  text-align: right;
+}
+
+/* Recommendation cards */
+.rec-item {
+  display: flex;
+  gap: 12px;
+  padding: 1rem;
+  border-radius: var(--radius);
+  border: 1px solid;
+  transition: all 0.2s;
+  margin-bottom: 0.75rem;
+}
+
+.rec-item:hover { transform: translateX(4px); }
+.rec-item.critical { background: rgba(252,129,129,0.06); border-color: rgba(252,129,129,0.2); }
+.rec-item.important { background: rgba(246,173,85,0.06); border-color: rgba(246,173,85,0.2); }
+.rec-item.warning { background: rgba(99,179,237,0.06); border-color: rgba(99,179,237,0.2); }
+.rec-item.suggestion { background: rgba(183,148,244,0.06); border-color: rgba(183,148,244,0.2); }
+.rec-item.success { background: rgba(104,211,145,0.06); border-color: rgba(104,211,145,0.2); }
+
+.rec-icon { font-size: 1.5rem; flex-shrink: 0; }
+.rec-title { font-weight: 700; font-size: 0.875rem; margin-bottom: 3px; font-family: 'Syne', sans-serif; }
+.rec-detail { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.5; }
+
+.rec-item.critical .rec-title { color: var(--accent4); }
+.rec-item.important .rec-title { color: var(--accent3); }
+.rec-item.warning .rec-title { color: var(--accent); }
+.rec-item.suggestion .rec-title { color: var(--accent5); }
+.rec-item.success .rec-title { color: var(--accent2); }
+
+/* Skill cloud */
+.skill-cloud { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.skill-tag-cat {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-family: 'Space Mono', monospace;
+  transition: all 0.2s;
+  cursor: default;
+}
+
+.skill-tag-cat:hover { transform: translateY(-2px); }
+
+/* Stat boxes */
+.stat-box {
+  text-align: center;
+  padding: 1.25rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  transition: all 0.3s;
+}
+
+.stat-box:hover {
+  border-color: var(--border-glow);
+  box-shadow: var(--glow);
+  transform: translateY(-3px);
+}
+
+.stat-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 2rem;
+  font-weight: 800;
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  margin-bottom: 0.35rem;
+}
+
+.stat-lbl {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-family: 'Space Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* JD Match */
+.match-score-wrap {
+  text-align: center;
+  padding: 1.5rem 0;
+}
+
+.match-score-num {
+  font-family: 'Syne', sans-serif;
+  font-size: 3.5rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.match-score-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  font-family: 'Space Mono', monospace;
+  margin-top: 6px;
+}
+
+.keyword-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 0.75rem;
+}
+
+.kw-present {
+  padding: 3px 10px;
+  background: rgba(104,211,145,0.1);
+  border: 1px solid rgba(104,211,145,0.2);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-family: 'Space Mono', monospace;
+  color: var(--accent2);
+}
+
+.kw-missing {
+  padding: 3px 10px;
+  background: rgba(252,129,129,0.1);
+  border: 1px solid rgba(252,129,129,0.2);
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-family: 'Space Mono', monospace;
+  color: var(--accent4);
+}
+
+/* Role bar */
+.role-bar-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.role-bar-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.role-bar-label { font-size: 0.8rem; color: var(--text-secondary); width: 140px; flex-shrink: 0; }
+.role-bar-track { flex: 1; height: 8px; background: rgba(255,255,255,0.05); border-radius: 999px; overflow: hidden; }
+.role-bar-fill { height: 100%; border-radius: 999px; background: var(--gradient); transition: width 1.2s ease; }
+.role-bar-pct { font-family: 'Space Mono', monospace; font-size: 0.72rem; color: var(--accent); width: 40px; text-align: right; }
+
+/* Canvas chart area */
+.chart-wrap { position: relative; height: 220px; }
+
+/* Contact info */
+.contact-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 0.85rem;
+}
+
+.contact-row:last-child { border-bottom: none; }
+.contact-icon { width: 30px; height: 30px; background: rgba(99,179,237,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; flex-shrink: 0; }
+.contact-val { color: var(--accent); font-family: 'Space Mono', monospace; font-size: 0.78rem; word-break: break-all; }
+.contact-missing { color: var(--text-muted); font-style: italic; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="results-wrap">
+
+  <!-- Header -->
+  <div class="results-header">
+    <div class="results-header-left">
+      <h1>📊 Analysis Complete</h1>
+      <p>{{ analysis.file_name }} · {{ analysis.uploaded_at|date:"d M Y, H:i" }}</p>
+    </div>
+    <div style="display:flex;gap:0.75rem;">
+      <a href="{% url 'index' %}" class="btn btn-ghost">⬆ New Upload</a>
+      <a href="{% url 'history' %}" class="btn btn-ghost">📋 History</a>
+    </div>
+  </div>
+
+  <!-- Score Hero -->
+  <div class="score-hero">
+    <div class="score-ring">
+      <svg width="120" height="120" viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="10"/>
+        <circle cx="60" cy="60" r="52" fill="none"
+          stroke="url(#scoreGrad)" stroke-width="10"
+          stroke-linecap="round"
+          stroke-dasharray="{{ analysis.ats_score|floatformat:0 }} 100"
+          style="stroke-dasharray: calc({{ analysis.ats_score|floatformat:0 }} * 3.267) 1000;
+                 stroke-dashoffset: 0;
+                 transition: stroke-dasharray 1.5s ease;"
+          id="score-circle"/>
+        <defs>
+          <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#63b3ed"/>
+            <stop offset="100%" style="stop-color:#b794f4"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <div class="score-ring-text">
+        <div class="score-number" style="background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+          {{ analysis.ats_score|floatformat:0 }}
+        </div>
+        <div class="score-label">ATS Score</div>
+      </div>
+    </div>
+
+    <div class="score-info">
+      <h2>{{ grade_label }} Resume</h2>
+      <p>ATS Score: <strong>{{ analysis.ats_score|floatformat:0 }}/100</strong> · 
+         Experience: <strong>{{ analysis.experience_years }} yrs</strong> · 
+         Words: <strong>{{ stats.word_count }}</strong> ·
+         Skills Found: <strong>{{ skills.total_technical }}</strong> technical</p>
+      <div style="display:flex;gap:6px;margin-top:0.75rem;flex-wrap:wrap;">
+        {% if contact.email %}<span class="badge badge-green">✓ Email</span>{% else %}<span class="badge badge-red">✗ No Email</span>{% endif %}
+        {% if contact.phone %}<span class="badge badge-green">✓ Phone</span>{% else %}<span class="badge badge-red">✗ No Phone</span>{% endif %}
+        {% if contact.linkedin %}<span class="badge badge-blue">✓ LinkedIn</span>{% else %}<span class="badge badge-orange">✗ No LinkedIn</span>{% endif %}
+        {% if contact.github %}<span class="badge badge-purple">✓ GitHub</span>{% else %}<span class="badge badge-orange">✗ No GitHub</span>{% endif %}
+        {% if analysis.job_description %}<span class="badge badge-blue">✓ JD Match Enabled</span>{% endif %}
+      </div>
+    </div>
+
+    <div class="score-grade">
+      <div class="grade-letter">{{ grade }}</div>
+      <div class="grade-label">Grade</div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="results-grid-3" style="margin-bottom:1.25rem;">
+    <div class="stat-box"><div class="stat-num">{{ stats.word_count }}</div><div class="stat-lbl">Word Count</div></div>
+    <div class="stat-box"><div class="stat-num">{{ skills.total_technical }}</div><div class="stat-lbl">Tech Skills</div></div>
+    <div class="stat-box"><div class="stat-num">{{ skills.total_soft }}</div><div class="stat-lbl">Soft Skills</div></div>
+    <div class="stat-box"><div class="stat-num">{{ stats.quantified_achievements }}</div><div class="stat-lbl">Quantified Items</div></div>
+    <div class="stat-box"><div class="stat-num">{{ stats.action_verb_count }}</div><div class="stat-lbl">Action Verbs</div></div>
+    <div class="stat-box"><div class="stat-num">{{ stats.readability_score|floatformat:0 }}</div><div class="stat-lbl">Readability</div></div>
+  </div>
+
+  <!-- Main Grid Row 1 -->
+  <div class="results-grid">
+
+    <!-- ATS Breakdown -->
+    <div class="card">
+      <div class="section-header">
+        <div class="section-icon section-icon-blue">📊</div>
+        <div>
+          <div class="section-title">ATS Score Breakdown</div>
+          <div class="section-sub">7-component scoring system</div>
+        </div>
+      </div>
+      {% for label, scored, maxval in ats_components %}
+      <div class="ats-row">
+        <div class="ats-row-label">{{ label }}</div>
+        <div class="ats-row-bar">
+          <div class="progress-bar">
+            <div class="progress-fill"
+              style="width: {% widthratio scored maxval 100 %}%;
+                     background: var(--gradient);">
+            </div>
+          </div>
+        </div>
+        <div class="ats-row-score">{{ scored }}/{{ maxval }}</div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Recommendations -->
+    <div class="card">
+      <div class="section-header">
+        <div class="section-icon section-icon-orange">💡</div>
+        <div>
+          <div class="section-title">AI Recommendations</div>
+          <div class="section-sub">{{ recommendations|length }} actionable improvements</div>
+        </div>
+      </div>
+      {% for rec in recommendations %}
+      <div class="rec-item {{ rec.type }}">
+        <div class="rec-icon">{{ rec.icon }}</div>
+        <div>
+          <div class="rec-title">{{ rec.title }}</div>
+          <div class="rec-detail">{{ rec.detail }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+
+  <!-- Main Grid Row 2 -->
+  <div class="results-grid">
+
+    <!-- Skills by Category -->
+    <div class="card">
+      <div class="section-header">
+        <div class="section-icon section-icon-green">⚙️</div>
+        <div>
+          <div class="section-title">Technical Skills</div>
+          <div class="section-sub">{{ skills.total_technical }} skills found across {{ skills.technical|length }} categories</div>
+        </div>
+      </div>
+      {% for category, skill_list in skills.technical.items %}
+      <div style="margin-bottom:1rem;">
+        <div style="font-size:0.72rem;color:var(--text-muted);font-family:'Space Mono',monospace;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:0.5rem;">
+          {{ category|title }}
+          <span style="color:var(--accent);margin-left:4px;">({{ skill_list|length }})</span>
+        </div>
+        <div class="skill-cloud">
+          {% for skill in skill_list %}
+          <span class="skill-tag">{{ skill }}</span>
+          {% endfor %}
+        </div>
+      </div>
+      {% empty %}
+      <p style="color:var(--text-muted);font-size:0.85rem;">No technical skills detected. Try expanding your skills section.</p>
+      {% endfor %}
+    </div>
+
+    <!-- Soft Skills + Certifications -->
+    <div style="display:flex;flex-direction:column;gap:1.25rem;">
+      <div class="card" style="flex:1;">
+        <div class="section-header">
+          <div class="section-icon section-icon-purple">🤝</div>
+          <div>
+            <div class="section-title">Soft Skills</div>
+            <div class="section-sub">{{ skills.soft|length }} found</div>
+          </div>
+        </div>
+        <div class="skill-cloud">
+          {% for skill in skills.soft %}
+          <span class="skill-tag-cat" style="background:rgba(183,148,244,0.08);border:1px solid rgba(183,148,244,0.2);color:var(--accent5);">{{ skill }}</span>
+          {% empty %}
+          <span style="color:var(--text-muted);font-size:0.8rem;">No soft skills detected.</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <div class="card" style="flex:1;">
+        <div class="section-header">
+          <div class="section-icon section-icon-orange">🏅</div>
+          <div>
+            <div class="section-title">Certifications</div>
+            <div class="section-sub">{{ skills.certifications|length }} found</div>
+          </div>
+        </div>
+        <div class="skill-cloud">
+          {% for cert in skills.certifications %}
+          <span class="skill-tag-cat" style="background:rgba(246,173,85,0.08);border:1px solid rgba(246,173,85,0.2);color:var(--accent3);">{{ cert }}</span>
+          {% empty %}
+          <span style="color:var(--text-muted);font-size:0.8rem;">No certifications found.</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Row 3 -->
+  <div class="results-grid">
+
+    <!-- Predicted Roles -->
+    <div class="card">
+      <div class="section-header">
+        <div class="section-icon section-icon-blue">🎯</div>
+        <div>
+          <div class="section-title">ML Role Prediction</div>
+          <div class="section-sub">Best-fit career profiles</div>
+        </div>
+      </div>
+      <div class="role-bar-wrap">
+        {% for role in predicted_roles %}
+        <div class="role-bar-row">
+          <div class="role-bar-label">{{ role.role }}</div>
+          <div class="role-bar-track">
+            <div class="role-bar-fill" style="width:{{ role.match }}%;"></div>
+          </div>
+          <div class="role-bar-pct">{{ role.match }}%</div>
+        </div>
+        {% empty %}
+        <p style="color:var(--text-muted);font-size:0.85rem;">Not enough skills detected to predict roles.</p>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Contact Info -->
+    <div class="card">
+      <div class="section-header">
+        <div class="section-icon section-icon-green">📇</div>
+        <div>
+          <div class="section-title">Contact Information</div>
+          <div class="section-sub">Extracted automatically</div>
+        </div>
+      </div>
+      <div class="contact-row">
+        <div class="contact-icon">📧</div>
+        <div><div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:2px;font-family:'Space Mono',monospace;">EMAIL</div>
+          {% if contact.email %}<div class="contact-val">{{ contact.email }}</div>{% else %}<div class="contact-missing">Not found</div>{% endif %}
+        </div>
+      </div>
+      <div class="contact-row">
+        <div class="contact-icon">📱</div>
+        <div><div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:2px;font-family:'Space Mono',monospace;">PHONE</div>
+          {% if contact.phone %}<div class="contact-val">{{ contact.phone }}</div>{% else %}<div class="contact-missing">Not found</div>{% endif %}
+        </div>
+      </div>
+      <div class="contact-row">
+        <div class="contact-icon">💼</div>
+        <div><div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:2px;font-family:'Space Mono',monospace;">LINKEDIN</div>
+          {% if contact.linkedin %}<div class="contact-val">{{ contact.linkedin }}</div>{% else %}<div class="contact-missing">Not found</div>{% endif %}
+        </div>
+      </div>
+      <div class="contact-row">
+        <div class="contact-icon">🐙</div>
+        <div><div style="font-size:0.7rem;color:var(--text-muted);margin-bottom:2px;font-family:'Space Mono',monospace;">GITHUB</div>
+          {% if contact.github %}<div class="contact-val">{{ contact.github }}</div>{% else %}<div class="contact-missing">Not found</div>{% endif %}
+        </div>
+      </div>
+
+      <div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid var(--border);">
+        <div class="section-header" style="margin-bottom:0.75rem;">
+          <div class="section-title" style="font-size:0.85rem;">Action Verbs</div>
+        </div>
+        <div class="skill-cloud" style="margin-bottom:0.75rem;">
+          {% for v in skills.action_verbs|slice:":12" %}
+          <span class="skill-tag-cat" style="background:rgba(104,211,145,0.08);border:1px solid rgba(104,211,145,0.2);color:var(--accent2);">{{ v }}</span>
+          {% endfor %}
+        </div>
+        {% if skills.weak_verbs %}
+        <div style="font-size:0.72rem;color:var(--accent4);font-family:'Space Mono',monospace;margin-top:0.5rem;">
+          ⚠️ Weak: {{ skills.weak_verbs|join:", " }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+
+  <!-- JD Match (if available) -->
+  {% if jd_match %}
+  <div class="results-grid" style="margin-bottom:1.25rem;">
+    <div class="card" style="grid-column:1/-1;">
+      <div class="section-header">
+        <div class="section-icon section-icon-purple">🔍</div>
+        <div>
+          <div class="section-title">Job Description Match Analysis</div>
+          <div class="section-sub">TF-IDF Cosine Similarity</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:200px 1fr 1fr;gap:2rem;align-items:start;">
+        <div class="match-score-wrap">
+          <div class="match-score-num"
+            style="background:{% if jd_match.similarity_score >= 70 %}var(--gradient2){% elif jd_match.similarity_score >= 40 %}var(--gradient){% else %}linear-gradient(135deg,#fc8181,#f6ad55){% endif %};-webkit-background-clip:text;-webkit-text-fill-color:transparent;">
+            {{ jd_match.similarity_score }}%
+          </div>
+          <div class="match-score-label">JD Match Score</div>
+          <div style="margin-top:0.75rem;font-size:0.75rem;color:var(--text-secondary);line-height:1.5;">
+            {{ jd_match.recommendation }}
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:0.72rem;color:var(--accent2);font-family:'Space Mono',monospace;text-transform:uppercase;margin-bottom:0.6rem;">✓ Matching Keywords ({{ jd_match.matching_keywords|length }})</div>
+          <div class="keyword-list">
+            {% for kw in jd_match.matching_keywords|slice:":20" %}
+            <span class="kw-present">{{ kw }}</span>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div>
+          <div style="font-size:0.72rem;color:var(--accent4);font-family:'Space Mono',monospace;text-transform:uppercase;margin-bottom:0.6rem;">✗ Missing Keywords ({{ jd_match.missing_keywords|length }})</div>
+          <div class="keyword-list">
+            {% for kw in jd_match.missing_keywords|slice:":20" %}
+            <span class="kw-missing">{{ kw }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animate ATS score circle
+document.addEventListener('DOMContentLoaded', () => {
+  const circle = document.getElementById('score-circle');
+  if (circle) {
+    const score = {{ analysis.ats_score|floatformat:0 }};
+    const circumference = 2 * Math.PI * 52;
+    circle.style.strokeDasharray = `0 ${circumference}`;
+    setTimeout(() => {
+      circle.style.transition = 'stroke-dasharray 1.5s ease';
+      circle.style.strokeDasharray = `${(score / 100) * circumference} ${circumference}`;
+    }, 300);
+  }
+
+  // Animate progress bars
+  document.querySelectorAll('.progress-fill').forEach(el => {
+    const target = el.style.width;
+    el.style.width = '0%';
+    setTimeout(() => { el.style.width = target; }, 400);
+  });
+
+  // Animate role bars
+  document.querySelectorAll('.role-bar-fill').forEach(el => {
+    const target = el.style.width;
+    el.style.width = '0%';
+    setTimeout(() => { el.style.width = target; }, 600);
+  });
+});
+</script>
+{% endblock %}
