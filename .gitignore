@@ -235,3 +235,5 @@ staticfiles/
 # IDE settings
 .vscode/
 .idea/
+
+!.env.example
