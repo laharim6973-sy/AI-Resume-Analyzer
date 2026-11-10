@@ -218,3 +218,20 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# AI Resume Analyzer specific files
+
+# Uploaded resumes and generated files
+media/
+uploads/
+user_uploads/
+
+# Django generated static files
+staticfiles/
+
+# Local environment settings
+.env.*
+
+# IDE settings
+.vscode/
+.idea/
